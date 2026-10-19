@@ -69,7 +69,7 @@ function PosterHero() {
       <p className="poster-year">2027 <span>노들 재즈 페스티벌</span></p>
       <h1 id="festival-title"><span className="screen-reader-only">2027 NODEUL JAZZ FESTIVAL · 노들 재즈 페스티벌</span><img src="/festival/korean-title.png" alt="" width="1223" height="1286" fetchPriority="high" /></h1>
     </div>
-    <p className="poster-signature" aria-hidden="true">Nodeul<br />Jazz<br />Festival</p>
+    <img className="poster-signature" src="/festival/script-lettering.png" alt="" width="1548" height="1016" aria-hidden="true" />
     <div className="sax-position" aria-hidden="true"><img src="/festival/chrome-saxophone.png" alt="" width="1024" height="1536" fetchPriority="high" /></div>
     <Vinyl className="hero-vinyl" />
     <span className="chrome-sphere sphere-one" aria-hidden="true" />
@@ -77,7 +77,7 @@ function PosterHero() {
     <span className="chrome-sphere sphere-three" aria-hidden="true" />
     <span className="chrome-sphere sphere-four" aria-hidden="true" />
     <span className="poster-spark" aria-hidden="true">✧</span>
-    <div className="poster-date"><span>OCTOBER</span><strong>08—10</strong><span>FRI — SUN / 2027</span></div>
+    <div className="poster-date" aria-label="2027년 10월 8일부터 10일까지"><span className="poster-date-label">2027 <span aria-hidden="true">/</span> OCTOBER</span><div className="poster-date-range"><time dateTime="2027-10-08">08</time><span aria-hidden="true">—</span><time dateTime="2027-10-10">10</time></div><span className="poster-date-weekdays">FRI <span aria-hidden="true">—</span> SUN</span></div>
     <div className="poster-location"><span className="location-cross" aria-hidden="true">+</span><p>NODEUL ISLAND<br /><span>SEOUL, KOREA</span></p></div>
     <a className="poster-scroll" href="#about">EXPLORE THE FESTIVAL <span aria-hidden="true">↓</span></a>
   </section>
