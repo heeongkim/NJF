@@ -1,163 +1,173 @@
-import { useEffect, useRef, useState, type CSSProperties } from 'react'
-import './App.css'
-import { calculateResult, questions, type Answer } from './quiz'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
+import JazzTest from './JazzTest'
+import { schedule } from './schedule'
+import './Site.css'
 
-// View boxes isolate the eight stickers from the processed, transparent pack.
-const stickers = [
-  { kind: 'logo', box: '24 276 390 170', x: '15%', y: '20%', rotate: '-13deg', delay: 80 },
-  { kind: 'dotted', box: '397 248 394 242', x: '82%', y: '17%', rotate: '12deg', delay: 190 },
-  { kind: 'script', box: '790 242 444 298', x: '15%', y: '48%', rotate: '-12deg', delay: 300 },
-  { kind: 'clef', box: '1240 130 264 405', x: '86%', y: '47%', rotate: '14deg', delay: 410 },
-  { kind: 'club', box: '35 576 356 315', x: '14%', y: '79%', rotate: '8deg', delay: 530 },
-  { kind: 'heart', box: '394 685 388 164', x: '77%', y: '78%', rotate: '-10deg', delay: 640 },
-  { kind: 'life', box: '797 649 358 213', x: '36%', y: '91%', rotate: '-7deg', delay: 740 },
-  { kind: 'lover', box: '1157 611 354 282', x: '61%', y: '10%', rotate: '8deg', delay: 840 },
+const pages = [
+  { href: '/', label: 'HOME' },
+  { href: '/festival', label: 'FESTIVAL' },
+  { href: '/schedule', label: 'SCHEDULE' },
+  { href: '/jazz-test', label: 'JAZZ TEST' },
 ]
 
-function App() {
-  const [screen, setScreen] = useState<'intro' | 'home' | 'question' | 'result'>('intro')
-  const [replay, setReplay] = useState(0)
-  const [artReady, setArtReady] = useState(false)
-  const [answers, setAnswers] = useState<Answer[]>([])
-  const [questionIndex, setQuestionIndex] = useState(0)
-  const [transitioning, setTransitioning] = useState(false)
-  const advanceTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const heading = useRef<HTMLHeadingElement>(null)
+function Link({ href, children, className, current }: { href: string; children: ReactNode; className?: string; current?: boolean }) {
+  return <a href={href} className={className} aria-current={current ? 'page' : undefined} onClick={event => {
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+    event.preventDefault()
+    if (window.location.pathname === href) {
+      window.history.replaceState(null, '', href)
+      window.scrollTo(0, 0)
+      document.getElementById('main-content')?.focus({ preventScroll: true })
+      return
+    }
+    window.history.pushState(null, '', href)
+    window.dispatchEvent(new PopStateEvent('popstate'))
+  }}>{children}</a>
+}
 
-  useEffect(() => {
-    const image = new Image()
-    image.onload = () => setArtReady(true)
-    image.onerror = () => setScreen('home')
-    image.src = '/stickers/jazz-stickers.png'
-    return () => { image.onload = null; image.onerror = null }
-  }, [])
+function Vinyl({ className = '' }: { className?: string }) {
+  return <div className={`vinyl ${className}`} aria-hidden="true"><div className="vinyl-label"><span>NJF</span><small>33⅓ · SIDE A</small><i /></div></div>
+}
 
+function PosterHero() {
+  const poster = useRef<HTMLElement>(null)
   useEffect(() => {
-    if (screen !== 'intro' || !artReady) return
+    const element = poster.current!
     const motion = window.matchMedia('(prefers-reduced-motion: reduce)')
-    const timer = window.setTimeout(() => setScreen('home'), motion.matches ? 0 : 1950)
-    return () => window.clearTimeout(timer)
-  }, [screen, replay, artReady])
-
-  useEffect(() => {
-    if (screen === 'question' || screen === 'result') heading.current?.focus({ preventScroll: true })
-  }, [screen, questionIndex])
-
-  useEffect(() => () => {
-    if (advanceTimer.current !== null) clearTimeout(advanceTimer.current)
+    const finePointer = window.matchMedia('(pointer: fine)')
+    let frame = 0
+    let x = 0
+    let y = 0
+    function update() {
+      frame = 0
+      element.style.setProperty('--pointer-x', `${x}px`)
+      element.style.setProperty('--pointer-y', `${y}px`)
+    }
+    function move(event: PointerEvent) {
+      if (motion.matches || !finePointer.matches) return
+      const bounds = element.getBoundingClientRect()
+      x = (event.clientX - bounds.left - bounds.width / 2) / bounds.width * 16
+      y = (event.clientY - bounds.top - bounds.height / 2) / bounds.height * 12
+      if (!frame) frame = requestAnimationFrame(update)
+    }
+    function reset() { cancelAnimationFrame(frame); x = 0; y = 0; update() }
+    element.addEventListener('pointermove', move)
+    element.addEventListener('pointerleave', reset)
+    motion.addEventListener('change', reset)
+    return () => {
+      cancelAnimationFrame(frame)
+      element.removeEventListener('pointermove', move)
+      element.removeEventListener('pointerleave', reset)
+      motion.removeEventListener('change', reset)
+    }
   }, [])
 
-  function cancelAdvance() {
-    if (advanceTimer.current !== null) clearTimeout(advanceTimer.current)
-    advanceTimer.current = null
-    setTransitioning(false)
-  }
-
-  function startTest() {
-    cancelAdvance()
-    setAnswers([])
-    setQuestionIndex(0)
-    setScreen('question')
-  }
-
-  function selectAnswer(answer: Answer) {
-    if (advanceTimer.current !== null) return
-    setAnswers(previous => {
-      const updated = [...previous]
-      updated[questionIndex] = answer
-      return updated
-    })
-    setTransitioning(true)
-    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    advanceTimer.current = setTimeout(() => {
-      advanceTimer.current = null
-      setTransitioning(false)
-      if (questionIndex === questions.length - 1) setScreen('result')
-      else setQuestionIndex(index => index + 1)
-    }, reducedMotion ? 0 : 280)
-  }
-
-  function goBack() {
-    cancelAdvance()
-    if (questionIndex === 0) setScreen('home')
-    else setQuestionIndex(index => index - 1)
-  }
-
-  function restart() {
-    cancelAdvance()
-    setAnswers([])
-    setQuestionIndex(0)
-    setReplay((value) => value + 1)
-    setScreen('intro')
-  }
-
-  return (
-    <div className={`festival ${screen}`}>
-      <header className="masthead">
-        <button className="wordmark" onClick={restart} aria-label="처음부터 다시 보기">NJF<span>NODEUL JAZZ FESTIVAL</span></button>
-        <span className="edition">A LITTLE JAZZ. A LOT OF YOU.</span>
-        <span className="header-star" aria-hidden="true">✳︎</span>
-      </header>
-
-      <main>
-        {artReady && <div className="sticker-board" key={replay} aria-hidden="true">
-          {stickers.map((sticker) => (
-            <div key={sticker.kind} className={`sticker ${sticker.kind}`} style={{ '--x': sticker.x, '--y': sticker.y, '--angle': sticker.rotate, '--delay': `${sticker.delay}ms` } as CSSProperties}>
-              <svg viewBox={sticker.box} focusable="false"><image href="/stickers/jazz-stickers.png" width="1536" height="1024" /></svg>
-            </div>
-          ))}
-        </div>}
-
-        {screen === 'intro' && <div className="intro-caption"><span>FIND YOUR RHYTHM</span><button onClick={() => setScreen('home')}>인트로 건너뛰기 ↗︎</button></div>}
-
-        {screen === 'home' && <section className="hero enter" aria-labelledby="main-title">
-          <p className="eyebrow"><span /> YOUR PERSONAL JAZZ DISCOVERY</p>
-          <h1 id="main-title">What's your<br /><em>jazz</em> like<span className="question-mark">?</span></h1>
-          <div className="hero-copy"><p>나와 어울리는 재즈는 어떤 소리일까?</p><p>취향을 따라가다 보면, 나만의 리듬을 만나게 될 거예요.</p></div>
-          <button className="start-button" onClick={startTest}>나의 재즈 찾기 <span aria-hidden="true">↗︎</span></button>
-          <p className="small-note">재즈를 몰라도 괜찮아요. 그냥 당신답게!</p>
-          <button className="replay-button" onClick={restart}>↻ 인트로 다시 보기</button>
-        </section>}
-
-        {screen === 'question' && <section className="question-panel" aria-labelledby="question-title">
-          <div className="question-navigation">
-            <button className="back-button" onClick={goBack}>← {questionIndex === 0 ? '처음으로' : '이전 질문'}</button>
-            <span className="question-count" aria-label={`전체 8개 중 ${questionIndex + 1}번째 질문`}><span>{String(questionIndex + 1).padStart(2, '0')}</span> / 08</span>
-          </div>
-          <div className="question-progress" aria-hidden="true"><span style={{ width: `${(questionIndex + 1) / questions.length * 100}%` }} /></div>
-          <div key={questionIndex} className={`question-content ${transitioning ? 'leaving' : ''}`}>
-            <h2 id="question-title" tabIndex={-1} ref={heading}>{questions[questionIndex].title}</h2>
-            <div className="answers" role="group" aria-labelledby="question-title">
-              {questions[questionIndex].options.map((option, index) => <button
-                key={index}
-                className={`answer ${answers[questionIndex] === index ? 'selected' : ''}`}
-                aria-pressed={answers[questionIndex] === index}
-                aria-disabled={transitioning}
-                onClick={() => selectAnswer(index as Answer)}
-              >
-                <span className="answer-number">{'ABCD'[index]}</span>
-                <span className="answer-text">{option}</span>
-                <span className="answer-check" aria-hidden="true">{answers[questionIndex] === index ? '✓' : '↗︎'}</span>
-              </button>)}
-            </div>
-          </div>
-        </section>}
-
-        {screen === 'result' && <section className="result-panel enter" aria-labelledby="result-title">
-          <p className="eyebrow">YOUR JAZZ IS</p>
-          <h2 id="result-title" tabIndex={-1} ref={heading}>{calculateResult(answers)}</h2>
-          <p>당신의 취향이 모여, 하나의 재즈가 되었어요.</p>
-          <div className="result-actions">
-            <button className="back-button" onClick={() => { setQuestionIndex(7); setScreen('question') }}>← 마지막 질문으로</button>
-            <button className="back-button" onClick={startTest}>다시 테스트하기 ↗︎</button>
-          </div>
-        </section>}
-
-      </main>
-
-      <footer><span>DIFFERENT SOUNDS, SAME LOVE.</span><span className="footer-center">마음이 가는 대로, 재즈.</span><span>FEEL YOUR OWN BEAT ↗︎</span></footer>
+  return <section className="poster-hero" ref={poster} aria-labelledby="festival-title">
+    <div className="poster-orbits" aria-hidden="true"><span /><span /><span /></div>
+    <div className="poster-kicker"><span>SEOUL, SOUTH KOREA</span><span>08—10 OCTOBER 2027</span></div>
+    <div className="poster-heading">
+      <p className="poster-year">2027 <span>노들 재즈 페스티벌</span></p>
+      <h1 id="festival-title"><span>NODEUL</span><span className="headline-jazz">JAZZ<span className="type-star" aria-hidden="true">✦</span></span><span>FESTIVAL</span></h1>
     </div>
-  )
+    <div className="sax-position" aria-hidden="true"><img src="/festival/chrome-saxophone.png" alt="" width="1024" height="1536" fetchPriority="high" /></div>
+    <Vinyl className="hero-vinyl" />
+    <span className="chrome-sphere sphere-one" aria-hidden="true" />
+    <span className="chrome-sphere sphere-two" aria-hidden="true" />
+    <span className="chrome-sphere sphere-three" aria-hidden="true" />
+    <span className="chrome-sphere sphere-four" aria-hidden="true" />
+    <span className="poster-spark" aria-hidden="true">✧</span>
+    <div className="poster-date"><span>OCTOBER</span><strong>08—10</strong><span>FRI — SUN / 2027</span></div>
+    <div className="poster-location"><span className="location-cross" aria-hidden="true">+</span><p>NODEUL ISLAND<br /><span>SEOUL, KOREA</span></p></div>
+    <a className="poster-scroll" href="#about">EXPLORE THE FESTIVAL <span aria-hidden="true">↓</span></a>
+  </section>
+}
+
+function Introduction() {
+  return <div className="introduction-copy">
+    <p>노들섬 재즈 페스티벌은 한강 위에 위치한 문화공간인 노들섬에서 진행되는 야외 재즈 페스티벌이다.</p>
+    <p>관객들은 잔디마당에 자유롭게 앉아 공연을 즐길 수 있으며, 곳곳에 배치된 푸드트럭과 부스를 통해 다양한 음식과 문화 콘텐츠를 함께 경험할 수 있다.</p>
+    <p>도심 속 자연 환경과 재즈 음악이 어우러진 편안하면서도 감각적인 음악 페스티벌 경험을 제공하는 것을 목표로 한다.</p>
+  </div>
+}
+
+function FestivalFacts() {
+  return <dl className="festival-facts"><div><dt>DATE</dt><dd>2027.10.08 — 10.10</dd></div><div><dt>PLACE</dt><dd>서울 노들섬 잔디마당 일대</dd></div></dl>
+}
+
+function Program() {
+  return <div className="program-list">{schedule.map((day, index) => <Link href="/schedule" key={day.date} className="program-row"><span className="program-number">DAY {index + 1}</span><strong>{day.program}</strong><span className="program-date">{day.date} <small>{day.weekday}</small></span><span aria-hidden="true">↗</span></Link>)}</div>
+}
+
+function Home() {
+  return <main className="site-main" id="main-content" tabIndex={-1}>
+    <PosterHero />
+    <section className="festival-intro section-space" id="about" aria-labelledby="intro-heading">
+      <div className="section-index"><span>01 / THE FESTIVAL</span><span>WHERE THE CITY MEETS THE SOUND</span></div>
+      <div className="intro-grid"><div><p className="korean-label">노들 재즈 페스티벌</p><h2 id="intro-heading">AN ISLAND.<br />A RHYTHM.<br /><em>OUR MOMENT.</em></h2><span className="intro-star" aria-hidden="true">✦</span></div><div><p className="intro-english">Nodeul Jazz Festival | NJF</p><Introduction /><FestivalFacts /><Link href="/festival" className="text-link">페스티벌 알아보기 <span aria-hidden="true">↗</span></Link></div></div>
+    </section>
+    <section className="program-section section-space" aria-labelledby="program-heading">
+      <div className="section-index"><span>02 / THREE DAYS OF JAZZ</span><span>2027.10.08 — 10.10</span></div>
+      <div className="section-heading"><h2 id="program-heading">ONE ISLAND.<br /><em>THREE CHAPTERS.</em></h2><Link href="/schedule" className="text-link">전체 일정 보기 <span aria-hidden="true">↗</span></Link></div>
+      <Program />
+    </section>
+    <section className="test-promotion section-space" aria-labelledby="test-promotion-title">
+      <div className="section-index"><span>03 / FIND YOUR OWN RHYTHM</span><span>NJF JAZZ TEST</span></div>
+      <div className="promotion-content"><p>나와 어울리는 재즈는 어떤 소리일까?</p><h2 id="test-promotion-title">WHAT’S YOUR<br /><em>JAZZ</em> LIKE?</h2><Link href="/jazz-test" className="promotion-link">나의 재즈 찾기 <span aria-hidden="true">↗</span></Link></div>
+      <Vinyl className="promotion-vinyl" /><div className="promotion-orbit" aria-hidden="true" /><span className="chrome-sphere promotion-sphere" aria-hidden="true" />
+    </section>
+  </main>
+}
+
+function FestivalPage() {
+  return <main id="main-content" tabIndex={-1} className="site-main basic-page">
+    <p className="page-kicker">2027 NODEUL JAZZ FESTIVAL</p><h1>FESTIVAL<span>노들 재즈 페스티벌</span></h1>
+    <div className="basic-intro"><h2>Nodeul Jazz Festival | NJF</h2><Introduction /></div>
+    <FestivalFacts /><h2 className="basic-section-title">PROGRAM</h2><Program />
+  </main>
+}
+
+function SchedulePage() {
+  const [selected, setSelected] = useState(0)
+  const day = schedule[selected]
+  const tabs = useRef<(HTMLButtonElement | null)[]>([])
+  return <main id="main-content" tabIndex={-1} className="site-main basic-page schedule-page">
+    <p className="page-kicker">2027.10.08 — 10.10 / NODEUL ISLAND</p><h1>SCHEDULE<span>3일간의 재즈, 두 개의 무대</span></h1>
+    <div className="day-tabs" role="tablist" aria-label="공연 날짜">{schedule.map((item, index) => <button type="button" key={item.date} ref={el => { tabs.current[index] = el }} role="tab" id={`day-${index}`} aria-selected={selected === index} aria-controls={`timetable-${index}`} tabIndex={selected === index ? 0 : -1} onClick={() => setSelected(index)} onKeyDown={event => {
+      let next = index
+      if (event.key === 'ArrowRight') next = (index + 1) % schedule.length
+      else if (event.key === 'ArrowLeft') next = (index + schedule.length - 1) % schedule.length
+      else if (event.key === 'Home') next = 0
+      else if (event.key === 'End') next = schedule.length - 1
+      else return
+      event.preventDefault(); setSelected(next); tabs.current[next]?.focus()
+    }}>{item.date} <span>{item.weekday}</span></button>)}</div>
+    <div className="timetable" role="tabpanel" id={`timetable-${selected}`} aria-labelledby={`day-${selected}`} tabIndex={0}>
+      {day.stages.map(stage => <section key={stage.kind} className="stage-schedule" aria-labelledby={`stage-${stage.kind}`}><div className="stage-heading"><h2 id={`stage-${stage.kind}`}>{stage.name}</h2><span>{stage.kind} / {stage.location}</span></div><ul>{stage.performances.map(performance => <li key={performance.time}><span className="performance-time">{performance.time}</span><div><strong>{performance.artist}</strong>{performance.billing && <small>{performance.billing}</small>}</div></li>)}</ul></section>)}
+    </div>
+  </main>
+}
+
+function App() {
+  const [path, setPath] = useState(() => window.location.pathname.replace(/\/+$/, '') || '/')
+  const initial = useRef(true)
+  useEffect(() => {
+    const onNavigate = () => setPath(window.location.pathname.replace(/\/+$/, '') || '/')
+    window.addEventListener('popstate', onNavigate)
+    return () => window.removeEventListener('popstate', onNavigate)
+  }, [])
+  useEffect(() => {
+    const label = pages.find(page => page.href === path)?.label ?? 'NOT FOUND'
+    document.title = `${label === 'HOME' ? '' : `${label} — `}2027 NODEUL JAZZ FESTIVAL`
+    if (initial.current) { initial.current = false; return }
+    window.scrollTo(0, 0)
+    document.getElementById('main-content')?.focus({ preventScroll: true })
+  }, [path])
+  return <div className={`site-shell ${path === '/jazz-test' ? 'test-route' : ''}`}>
+    <a className="skip-link" href="#main-content">본문으로 바로가기</a>
+    <header className="site-header"><Link href="/" className="site-logo"><strong>NJF<span>✦</span></strong><span>NODEUL<br />JAZZ FESTIVAL</span></Link><nav aria-label="주 메뉴">{pages.map(page => <Link key={page.href} href={page.href} current={path === page.href}>{page.label}</Link>)}</nav><span className="header-edition">SEOUL<br />08—10 OCT. 2027</span></header>
+    {path === '/' ? <Home /> : path === '/festival' ? <FestivalPage /> : path === '/schedule' ? <SchedulePage /> : path === '/jazz-test' ? <div id="main-content" tabIndex={-1} className="jazz-test"><JazzTest /></div> : <main className="site-main basic-page not-found" id="main-content" tabIndex={-1}><p className="page-kicker">404 / NOT FOUND</p><h1>길을 벗어나도,<br />리듬은 계속.</h1><Link href="/" className="text-link">HOME으로 돌아가기 ↗</Link></main>}
+    <footer className="site-footer"><Link href="/" className="footer-logo">NJF<span>2027</span></Link><p>NODEUL JAZZ FESTIVAL<br /><span>2027.10.08 — 10.10 · NODEUL ISLAND, SEOUL</span></p><span className="footer-signoff">DIFFERENT SOUNDS.<br />SAME ISLAND.</span></footer>
+  </div>
 }
 
 export default App
