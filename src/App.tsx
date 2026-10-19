@@ -67,8 +67,9 @@ function PosterHero() {
     <div className="poster-kicker"><span>SEOUL, SOUTH KOREA</span><span>08—10 OCTOBER 2027</span></div>
     <div className="poster-heading">
       <p className="poster-year">2027 <span>노들 재즈 페스티벌</span></p>
-      <h1 id="festival-title"><span>NODEUL</span><span className="headline-jazz">JAZZ<span className="type-star" aria-hidden="true">✦</span></span><span>FESTIVAL</span></h1>
+      <h1 id="festival-title"><span className="screen-reader-only">2027 NODEUL JAZZ FESTIVAL · 노들 재즈 페스티벌</span><img src="/festival/korean-title.png" alt="" width="1223" height="1286" fetchPriority="high" /></h1>
     </div>
+    <p className="poster-signature" aria-hidden="true">Nodeul<br />Jazz<br />Festival</p>
     <div className="sax-position" aria-hidden="true"><img src="/festival/chrome-saxophone.png" alt="" width="1024" height="1536" fetchPriority="high" /></div>
     <Vinyl className="hero-vinyl" />
     <span className="chrome-sphere sphere-one" aria-hidden="true" />

@@ -26,7 +26,7 @@ npm run preview -- --host 0.0.0.0 --port 4173 --strictPort
 
 History API 기반 내부 링크와 브라우저 뒤로/앞으로 이동을 지원합니다. Vercel의 기존 SPA rewrite로 각 경로의 직접 진입·새로고침을 처리합니다. 새 라이브러리는 사용하지 않습니다.
 
-홈 색소폰은 제공된 포스터의 컬러와 질감을 참고해 생성한 개별 투명 에셋입니다. 바이닐·구체·궤도는 CSS로 구성합니다. 포인터 움직임은 requestAnimationFrame으로 제한하고, reduced-motion 설정에서는 움직임을 끕니다.
+홈 한글 레터링과 색소폰은 제공된 최종 포스터를 바탕으로 이미지 도구로 가공한 개별 투명 에셋입니다. 원본을 픽셀 단위로 잘라낸 것과는 미세한 차이가 있을 수 있습니다. 바이닐·구체·궤도는 CSS로 구성합니다. 포인터 움직임은 requestAnimationFrame으로 제한하고, reduced-motion 설정에서는 움직임을 끕니다.
 
 ## Jazz Test
 
