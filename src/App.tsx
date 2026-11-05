@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import JazzTest from './JazzTest'
 import { schedule } from './schedule'
 import './Site.css'
+import './Hero.css'
 
 const pages = [
   { href: '/', label: 'HOME' },
@@ -63,23 +64,28 @@ function PosterHero() {
   }, [])
 
   return <section className="poster-hero" ref={poster} aria-labelledby="festival-title">
-    <div className="poster-orbits" aria-hidden="true"><span /><span /><span /></div>
-    <div className="poster-kicker"><span>SEOUL, SOUTH KOREA</span><span>08—10 OCTOBER 2027</span></div>
-    <div className="poster-heading">
-      <p className="poster-year">2027 <span>노들 재즈 페스티벌</span></p>
-      <h1 id="festival-title"><span className="screen-reader-only">2027 NODEUL JAZZ FESTIVAL · 노들 재즈 페스티벌</span><img src="/festival/korean-title.png" alt="" width="1223" height="1286" fetchPriority="high" /></h1>
+    <div className="hero-stage">
+      <div className="hero-blue-field" aria-hidden="true" />
+      <div className="hero-orbits" aria-hidden="true"><span /><span /><span /></div>
+      <div className="hero-edition"><span>2027 · SEOUL</span><span>THREE DAYS. ONE ISLAND.</span></div>
+      <div className="hero-title-block">
+        <h1 id="festival-title"><span className="hero-monogram">NJF<span className="hero-title-star" aria-hidden="true">✦</span></span><span className="hero-festival-name">NODEUL<br />JAZZ FESTIVAL</span></h1>
+        <p className="hero-korean-name">노들 재즈 페스티벌<span>음악이 흐르는 섬, 노들.</span></p>
+      </div>
+      <div className="hero-sax" aria-hidden="true"><img src="/festival/chrome-saxophone.png" alt="" width="1024" height="1536" fetchPriority="high" /></div>
+      <div className="hero-record" aria-hidden="true"><Vinyl className="hero-vinyl" /></div>
+      <img className="hero-autograph" src="/festival/script-lettering.png" alt="" width="1548" height="1016" aria-hidden="true" />
+      <span className="chrome-sphere hero-sphere-one" aria-hidden="true" />
+      <span className="chrome-sphere hero-sphere-two" aria-hidden="true" />
+      <span className="chrome-sphere hero-sphere-three" aria-hidden="true" />
+      <span className="hero-rhythm-mark" aria-hidden="true">✧</span>
+      <span className="hero-side-note" aria-hidden="true">LIVE JAZZ / OPEN AIR / NODEUL ISLAND</span>
     </div>
-    <img className="poster-signature" src="/festival/script-lettering.png" alt="" width="1548" height="1016" aria-hidden="true" />
-    <div className="sax-position" aria-hidden="true"><img src="/festival/chrome-saxophone.png" alt="" width="1024" height="1536" fetchPriority="high" /></div>
-    <Vinyl className="hero-vinyl" />
-    <span className="chrome-sphere sphere-one" aria-hidden="true" />
-    <span className="chrome-sphere sphere-two" aria-hidden="true" />
-    <span className="chrome-sphere sphere-three" aria-hidden="true" />
-    <span className="chrome-sphere sphere-four" aria-hidden="true" />
-    <span className="poster-spark" aria-hidden="true">✧</span>
-    <div className="poster-date" aria-label="2027년 10월 8일부터 10일까지"><span className="poster-date-label">2027 <span aria-hidden="true">/</span> OCTOBER</span><div className="poster-date-range"><time dateTime="2027-10-08">08</time><span aria-hidden="true">—</span><time dateTime="2027-10-10">10</time></div><span className="poster-date-weekdays">FRI <span aria-hidden="true">—</span> SUN</span></div>
-    <div className="poster-location"><span className="location-cross" aria-hidden="true">+</span><p>NODEUL ISLAND<br /><span>SEOUL, KOREA</span></p></div>
-    <a className="poster-scroll" href="#about">EXPLORE THE FESTIVAL <span aria-hidden="true">↓</span></a>
+    <div className="hero-information">
+      <div className="hero-dates" aria-label="2027년 10월 8일부터 10일까지"><span className="hero-info-label">OCTOBER 2027</span><div><time dateTime="2027-10-08">08</time><span aria-hidden="true">—</span><time dateTime="2027-10-10">10</time><small>FRI<br />SUN</small></div></div>
+      <div className="hero-place"><span className="hero-info-label">THE ISLAND, THE STAGE</span><p>NODEUL ISLAND<span>서울 노들섬 잔디마당 일대</span></p></div>
+      <a className="hero-explore" href="#about"><span>MEET THE FESTIVAL<small>페스티벌 알아보기</small></span><span className="hero-explore-arrow" aria-hidden="true">↘</span></a>
+    </div>
   </section>
 }
 
