@@ -69,7 +69,7 @@ function PosterHero() {
       <div className="hero-orbits" aria-hidden="true"><span /><span /><span /></div>
       <div className="hero-edition"><span>2027 · SEOUL</span><span>THREE DAYS. ONE ISLAND.</span></div>
       <div className="hero-title-block">
-        <h1 id="festival-title"><span className="hero-monogram">NJF<span className="hero-title-star" aria-hidden="true">✦</span></span><span className="hero-festival-name">NODEUL<br />JAZZ FESTIVAL</span></h1>
+        <h1 id="festival-title" aria-label="Nodeul Jazz Festival"><span>Nodeul</span><span>Jazz</span><span>Festival</span></h1>
         <p className="hero-korean-name">노들 재즈 페스티벌<span>음악이 흐르는 섬, 노들.</span></p>
       </div>
       <div className="hero-sax" aria-hidden="true"><img src="/festival/chrome-saxophone.png" alt="" width="1024" height="1536" fetchPriority="high" /></div>
