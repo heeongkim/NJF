@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import './App.css'
+import ResultPlaylists, { ResultGraphic } from './ResultPlaylists'
 import { calculateResult, questions, type Answer } from './quiz'
 
 // View boxes isolate the eight stickers from the processed, transparent pack.
@@ -91,6 +92,8 @@ function JazzTest() {
     setScreen('intro')
   }
 
+  const result = screen === 'result' ? calculateResult(answers) : null
+
   return (
     <div className={`festival ${screen}`}>
 
@@ -138,10 +141,15 @@ function JazzTest() {
           </div>
         </section>}
 
-        {screen === 'result' && <section className="result-panel enter" aria-labelledby="result-title">
-          <p className="eyebrow">YOUR JAZZ IS</p>
-          <h2 id="result-title" tabIndex={-1} ref={heading}>{calculateResult(answers)}</h2>
-          <p>당신의 취향이 모여, 하나의 재즈가 되었어요.</p>
+        {result && <section className="result-panel enter" aria-labelledby="result-title">
+          <div className="result-header">
+            <div className="result-heading-copy"><p className="eyebrow">YOUR JAZZ IS</p>
+              <h2 id="result-title" tabIndex={-1} ref={heading}>{result}</h2>
+              <p className="result-description">당신의 취향이 모여, 하나의 재즈가 되었어요.</p>
+            </div>
+            <ResultGraphic genre={result} />
+          </div>
+          <ResultPlaylists genre={result} />
           <div className="result-actions">
             <button className="back-button" onClick={() => { setQuestionIndex(7); setScreen('question') }}>← 마지막 질문으로</button>
             <button className="back-button" onClick={startTest}>다시 테스트하기 ↗︎</button>
